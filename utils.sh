@@ -34,7 +34,7 @@ function print
 	echo -e "$current_color$1$c_def"
 }
 
-function check_date
+function check_date_format
 {
 	#at least 5 characters
 	if [[ ${#1} -gt 5 && $1 =~ ^[0-9/]+$ ]] ; then

@@ -9,6 +9,12 @@ options_list=(
 	"Esci")
 options_count=${#options_list[@]}
 
+
+
+	##
+	#sort -k 2,2 -k 1,1 file.txt      -t, --field-separator=SEP
+	##
+	
 function main_menu
 {
 	echo_section "Menu Principale" $c_orange
@@ -16,9 +22,12 @@ function main_menu
 	do
 		print_menu
 		
-		echo_color "Hello "$(whoami)", choose an option: " $c_blue -n
-		read chosen
-		case $chosen in
+		#echo_color "Hello "$(whoami)", choose an option: " $c_blue -n
+		#read chosen
+		
+		read -r -e -p "Hello "$(whoami)", choose an option: " -n 1
+		
+		case $REPLY in
 			1) reserve ;;
 			2) delete_reservation ;;
 			3) show_classroom ;;
@@ -44,13 +53,13 @@ function reserve
 {
 	echo_section "Prenotazioni" $c_orange
 	
-	classrooms=("tessari" "alpha" "delta" "gamma" "a" "b" "c" "d" "e" "f" "g" "h" "i" "l" "m")
+	classrooms=("Gino Tessari" "Alpha" "Delta" "Gamma" "A" "B" "C" "D" "E" "F" "G" "H" "I" "L" "M")
 	
 	while :
 	do
 		echo_color "Classroom (${classrooms[*]}): " $c_blue -n
 		read in_classroom						 ##,, to lowercase
-		if [[ ! -z $in_classroom && "${classrooms[@]}" =~ "${in_classroom,,}" ]]; then 
+		if [[ ! -z $in_classroom && "${classrooms[@];;}" =~ "${in_classroom,,}" ]]; then 
 			break
 		else
 			echo_color "Error: choose a room from the list." $c_red
@@ -68,28 +77,49 @@ function reserve
 	do 
 		echo_color "Date (example 23/06/1912): " $c_blue -n
 	 	read in_date
-	 	if [[ $(check_date $in_date) = "1" ]] ; then
-		 	break
+	 	if [[ $(check_date_format $in_date) = "1" ]] ; then
+		 	now=$(date +"%Y%m%d")
+			formatted_date=$(date -d "$in_date" +"%Y%m%d")
+	 		if [ $formatted_date -ge $now ]; then 
+		 		break
+		 	else
+		 		echo_color "Error: this date is not in the future" $c_red
+			fi
 	 	else
 		 	echo_color "Error: format dd-mm-year (example 23/06/1912)" $c_red
 	 	fi
 	done
 	
+	
 	while :
-	do 
-		echo_color "Hour (8 to 17): " $c_blue -n
-	 	read in_hour
-	 	if [[ $in_hour -ge 8 && $hour -le 17 ]] ; then
+	do
+		echo_color "Hour <from 8> <to 17> (example: 9 12): " $c_blue -n
+		read hour_line
+		read hour_from hour_to <<< $hour_line
+		
+	 	if [[ $hour_from -ge 8 && $hour_from -le 17  && $hour_to -ge 8 && $hour_to -le 17 ]] ; then
 		 	break
 	 	else
-		 	echo_color "Error: the university is closed at $in_hour" $c_red
+		 	echo_color "Error: the university is closed before 8 and after 17" $c_red
 	 	fi
 	done
-	echo_color "Reserved room \"$in_classroom\" for $in_username in date $in_date" $c_green
 	
-	formatted_date=$(date -d "$in_date" +"%Y%m%d")
-	echo $formatted_date
+	read -n 1 -r -e -p "Reserve classroom \"$in_classroom\" for $in_username in date $in_date at $hour_from to $hour_to ? [y/n] " 
 	
+	if [[ $REPLY =~ ^[Yy]$ ]]
+	then
+		echo_color "Done!" $c_green
+		
+		formatted_date=$(date -d "$in_date" +"%Y%m%d")
+		echo "$in_classroom;$formatted_date;$hour_from-$hour_to;$in_username" >> $data_file
+	fi
+
+	
+}
+
+function reservation_exists
+{
+	echo "not implemented"
 }
 
 function delete_reservation
