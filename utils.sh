@@ -19,14 +19,32 @@ b_indaco="\e[46m"
 
 current_color=$c_def
 
+default_separator="$IFS"
+
+function set_separator
+{
+	IFS="$@"
+}
+
+function reset_separator
+{
+	IFS="$default_separator"
+}
+
 function echo_section
 {
-	echo -e "${2}o~~~~~~~~~~~~~~~~~~~~~~~~~~~~~o\n|  $1\no~~~~~~~~~~~~~~~~~~~~~~~~~~~~~o$c_def"
+	echo -e "\n${2}o~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~o\n|  $1\no~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~o$c_def"
 }
  
 function echo_color
 {
 	echo -e $3 "$2$1$c_def"
+}
+
+function wait_input
+{
+	echo ""
+	read -p "Press any key to continue..." -n 1
 }
 
 function print
@@ -47,6 +65,10 @@ function check_date_format
 	fi
 }
    
+function to_lowercase
+{
+	echo $1 | tr "[:upper:]" "[:lower:]"
+}
 
 #my_path=$(readlink -e "$BASH_SOURCE") #read the full file path
 #my_dir=$(dirname "$my_path") #extract the folder from the path

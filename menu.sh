@@ -9,22 +9,12 @@ options_list=(
 	"Esci")
 options_count=${#options_list[@]}
 
+classrooms=("Gino Tessari" "Alpha" "Delta" "Gamma" "A" "B" "C" "D" "E" "F" "G" "H" "I" "L" "M")
+	
 
 
-	##
-	#sort -k 2,2 -k 1,1 file.txt      -t, --field-separator=SEP
-	##
-	 
 function main_menu
 {
-	 
-	if [[ $(reservation_exists A 20160512 8 9) = "1" ]]; then 
-		echo "exits"
-	else
-	 	echo "does not exits"
-	fi
-	
-	echo_section "Menu Principale" $c_orange
 	while true
 	do
 		print_menu
@@ -40,12 +30,16 @@ function main_menu
 			*) echo_color "Error: Only numbers from 1 to 5" $c_red ;;
 		esac
 		
-		echo ""
+		wait_input
+		
 	done
 }
 
 function print_menu
 {
+
+	echo_section "Menu Principale" $c_orange
+	
 	for ((i = 0; i < $options_count; i++))
 	do
 		n=$(($i+1))
@@ -55,21 +49,12 @@ function print_menu
 
 function reserve
 {
-	echo_section "Prenotazioni" $c_orange
+	echo_section "${options_list[0]}" $c_orange
 	
-	classrooms=("Gino Tessari" "Alpha" "Delta" "Gamma" "A" "B" "C" "D" "E" "F" "G" "H" "I" "L" "M")
+	#Classroom
+	get_classroom in_classroom 
 	
-	while :
-	do
-		echo_color "Classroom (${classrooms[*]}): " $c_blue -n
-		read in_classroom						 ##,, to lowercase
-		if [[ ! -z $in_classroom && "${classrooms[@];;}" =~ "${in_classroom,,}" ]]; then 
-			break
-		else
-			echo_color "Error: choose a room from the list." $c_red
-		fi
-	done
-	
+	#Username
 	while :
 	do
 		echo_color "Username: " $c_blue -n
@@ -77,9 +62,10 @@ function reserve
 		[[ ! -z $in_username ]] && break
 	done
 	 
+	#Date
 	while :
 	do 
-		echo_color "Date (example "$(date +"%d/%m/%Y")"): " $c_blue -n
+		echo_color "Date (year/month/day): " $c_blue -n
 	 	read in_date
 	 	if [[ $(check_date_format $in_date) = "1" ]] ; then
 		 	now=$(date +"%Y%m%d")
@@ -90,11 +76,12 @@ function reserve
 		 		echo_color "Error: this date is not in the future" $c_red
 			fi
 	 	else
-		 	echo_color "Error: format dd-mm-year (example "$(date +"%d/%m/%Y")")" $c_red
+		 	echo_color "Error: format year/month/day (example "$(date +"%Y/%m/%d")")" $c_red
 	 	fi
 	done
 	
 	
+	#Hour range	
 	while :
 	do
 		echo_color "Hour <from H> <to H> (example: 9 12): " $c_blue -n
@@ -116,21 +103,53 @@ function reserve
 	 	fi
 	done
 	
-	#prompt to save
+	#Prompt to save
 	while :
 	do
-		read -n 1 -r -e -p "Reserve room $hour_from for $hour_to ? [y/n] " 
+		read -n 1 -r -e -p "Reserve room \"$in_classroom\" for $in_username in date $in_date from $hour_from to $hour_to ? [y/n] " 
 	
 		if [[ $REPLY =~ ^[Yy]$ ]] ; then
-			echo_color "Done!" $c_green 
 			echo "$in_classroom;$formatted_date;$hour_from;$hour_to;$in_username" >> $data_file
+			echo_color "Done!" $c_green 
+			break
 		elif [[ $REPLY =~ ^[Nn]$ ]] ; then
 			break
 		fi
 	done
 }
 
-#args: date, hour_from, hour_to
+function get_classroom
+{
+	
+	while :
+	do
+		echo_color "Classroom (${classrooms[*]}): " $c_blue -n
+		read in_classroom						
+		
+		if [[ ! -z $in_classroom ]]
+		then 
+			found=false 
+			
+			for room in "${classrooms[@]}"
+			do
+				if [ $(to_lowercase $room) = $(to_lowercase $in_classroom) ] ; then
+					found=true
+					in_classroom=$room
+					break;
+				fi
+			done
+			
+			if [[ $found = true ]]; then
+				break
+			else
+				echo_color "Error: choose a room from the list." $c_red
+			fi
+		fi
+	done
+	eval "$1='$in_classroom'" 
+}
+
+#arguments: classroom, date, hour_from, hour_to
 function reservation_exists
 {
 	#search for the date and get the 3th and 4th column
@@ -150,22 +169,41 @@ function reservation_exists
 
 function delete_reservation
 {
+	echo_section "${options_list[1]}" $c_orange
 	echo "not implemented"
 }
 
 function show_classroom
 {
-	echo "not implemented"
+	echo_section "${options_list[2]}" $c_orange
+	get_classroom in_classroom
+	echo ""
+	output=$(echo -e "User|Date|From|To\n")
+	for line in $(grep "$in_classroom;" $data_file | sort -k 2n -k 3n --field-separator=";")
+	do 
+		set_separator ";"
+		read in_classroom in_date in_hour_from in_hour_to in_username <<< "$line"
+		reset_separator
+		in_date=$(date -d "$in_date" +"%d/%m/%Y")
+		output="$output\n$in_username|$in_date|$in_hour_from|$in_hour_to"
+	done 
+	echo -e "$output" | column -t -s "|"
 }
 
 function show_reservations
 {
-	echo "not implemented"
+	echo_section "${options_list[3]}" $c_orange
+	for classroom in "${classrooms[@]}"
+	do
+		count=$(grep -c "$classroom;" $data_file)
+		[[ $count -gt 0 ]] && echo "$classroom: $count"
+	done
 }
 
 function quit
 {
-	echo_color "Buona giornata!" $c_indaco
+	echo_section "${options_list[4]}" $c_orange
+	echo_color "Buona giornata!\n" $c_indaco
 	exit
 }
 
