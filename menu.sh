@@ -11,15 +11,6 @@ options_count=${#options_list[@]}
 
 function main_menu
 {
-	s1="05/12/1991"
-	s2="999"
-	s3="05-12-1991"
-	s4="05 12 1991"
-	[[ $s1  =~  ^[0-9/]+$ ]] && echo "ok1" || echo "no"
-	[[ $s2  =~  ^[0-9]+$ ]] && echo "ok2" || echo "no"
-	[[ $s3  =~  ^[0-9]+$ ]] && echo "ok3" || echo "no"
-	[[ $s4  =~  ^[0-9]+$ ]] && echo "ok4" || echo "no"
-	
 	echo_section "Menu Principale" $c_orange
 	while true
 	do
