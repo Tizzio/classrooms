@@ -36,6 +36,7 @@ function get_classroom
 		fi
 		reset_separator
 	done
+	reset_separator
 	eval "$1='$in_classroom'" 
 }
 
@@ -81,8 +82,7 @@ function get_hour_range
 		read hour_from hour_to <<< $hour_line
 		
 		[[ -z $hour_to ]] && hour_to=$hour_from
-		
-	 	if [[ $hour_from -ge 8 && $hour_from -le 17  && $hour_to -ge 8 && $hour_to -le 17 ]]
+	 	if [[ "$hour_from" -ge 8 && $hour_from -le 17  && $hour_to -ge 8 && $hour_to -le 17 ]]
 	 	then
 			if [[ $(reservation_exists $in_classroom $formatted_date $hour_from $hour_to) = "1" ]]
 			then 

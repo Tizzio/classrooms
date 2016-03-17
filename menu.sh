@@ -79,8 +79,19 @@ function reserve
 function delete_reservation
 {
 	echo_section "${options_list[1]}" $c_orange
-	name="Gino Tessari"
-	echo "$(grep -v "$name" $data_file)" > $data_file 
+	
+	#Classroom
+	get_classroom in_classroom 
+	
+	#Date
+	get_date in_date formatted_date
+
+	#Hour range	
+	echo_color "Hour: " $c_blue -n
+	read in_hour
+	
+	pattern="$in_classroom;$formatted_date;$in_hour"
+	echo -e "$(grep -v "$pattern" $data_file)" > $data_file 
 }
 
 function show_classroom
@@ -97,7 +108,7 @@ function show_classroom
 		read in_classroom in_date in_hour_from in_hour_to in_username <<< "$line"
 		reset_separator
 		
-		in_date=$(date -d "$in_date" +"%d/%m/%Y")
+		in_date=$(date -d "$in_date" +"%Y/%m/%d")
 		output="$output\n$in_username|$in_date|$in_hour_from|$in_hour_to"
 		
 		set_separator $'\n' #set the newline separator for the next iteration
