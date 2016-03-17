@@ -79,7 +79,8 @@ function reserve
 function delete_reservation
 {
 	echo_section "${options_list[1]}" $c_orange
-	echo "not implemented"
+	name="Gino Tessari"
+	echo "$(grep -v "$name" $data_file)" > $data_file 
 }
 
 function show_classroom
@@ -121,7 +122,6 @@ function quit
 	echo_color "Buona giornata!\n" $c_indaco
 	exit
 }
-
 
 #arguments: classroom, date, hour_from, hour_to
 function reservation_exists
