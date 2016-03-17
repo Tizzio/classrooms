@@ -1,8 +1,8 @@
 #!/bin/bash
 
-source "utils.sh"
-source "input.sh"
-source "menu.sh"
+source "includes/utils.sh"
+source "includes/input.sh"
+source "includes/menu.sh"
 
 main_menu
 
