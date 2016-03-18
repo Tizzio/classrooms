@@ -1,6 +1,5 @@
 #!/bin/bash
 
-data_file="data/database.csv"
 options_list=(
 	"Prenota"
 	"Elimina Prenotazione"
@@ -66,7 +65,7 @@ function reserve
 		read -n 1 -r -e -p "Reserve room \"$in_classroom\" for $in_username in date $in_date from $hour_from to $hour_to ? [y/n] " 
 	
 		if [[ $REPLY =~ ^[Yy]$ ]] ; then
-			echo "$in_classroom;$formatted_date;$hour_from;$hour_to;$in_username" >> $data_file
+			echo "$in_classroom${separator}$formatted_date${separator}$hour_from${separator}$hour_to${separator}$in_username" >> $data_file
 			echo_color "Done!" $c_green 
 			break
 		elif [[ $REPLY =~ ^[Nn]$ ]] ; then
@@ -83,28 +82,36 @@ function delete_reservation
 	#Classroom
 	get_classroom in_classroom 
 	
+	echo_color "Classroom $in_classroom is reserved for the following dates:" $c_indaco
+	show_classroom -a
+	
 	#Date
-	get_date in_date formatted_date
+	get_date in_date formatted_date -c
 
 	#Hour range	
 	echo_color "Hour: " $c_blue -n
 	read in_hour
 	
-	pattern="$in_classroom;$formatted_date;$in_hour"
+	pattern="$in_classroom${separator}$formatted_date${separator}$in_hour"
 	echo -e "$(grep -v "$pattern" $data_file)" > $data_file 
 }
 
 function show_classroom
 {
-	echo_section "${options_list[2]}" $c_orange
-	get_classroom in_classroom
-	echo ""
-	output=$(echo -e "User|Date|From|To\n")
+	if [[ $# = 0 ]]; then
+		echo_section "${options_list[2]}" $c_orange
+		get_classroom in_classroom
+		echo ""
+	fi
 	
+	output=$(echo -e "Username|Date|From|To\n----------|----------|----|--")
+	
+	#set the newline separator
 	set_separator $'\n'
-	for line in $(grep "$in_classroom;" $data_file | sort -k 2n -k 3n --field-separator=";")
+	#search and sort based on second and third column (n means numeric)
+	for line in $(grep "$in_classroom${separator}" $data_file | sort -k 2n -k 3n --field-separator=${separator})
 	do
-		set_separator ";"
+		set_separator "${separator}"
 		read in_classroom in_date in_hour_from in_hour_to in_username <<< "$line"
 		reset_separator
 		
@@ -114,7 +121,7 @@ function show_classroom
 		set_separator $'\n' #set the newline separator for the next iteration
 	done
 	reset_separator
-	echo -e "$output" | column -t -s "|"
+	echo -e "$output" | column -t -s'|'
 }
 
 function show_reservations
@@ -122,7 +129,7 @@ function show_reservations
 	echo_section "${options_list[3]}" $c_orange
 	for classroom in "${classrooms[@]}"
 	do
-		count=$(grep -c "$classroom;" $data_file)
+		count=$(grep -c "$classroom${separator}" $data_file)
 		[[ $count -gt 0 ]] && echo "$classroom: $count"
 	done
 }
@@ -138,10 +145,10 @@ function quit
 function reservation_exists
 {
 	#search for the date and get the 3th and 4th column
-	for range in $( grep -i "$1;$2" $data_file | cut -d ';' -f 3,4 ) 
+	for range in $( grep -i "$1${separator}$2" $data_file | cut -d ${separator} -f 3,4 ) 
 	do
-		hour_from=$(echo $range | cut -f 1 -d ';')
-		hour_to=$(echo $range | cut -f 2 -d ';')
+		hour_from=$(echo $range | cut -f 1 -d ${separator})
+		hour_to=$(echo $range | cut -f 2 -d ${separator})
 		if [[ ( $3 -ge $hour_from && $3 -le $hour_to ) ||
 			  ( $4 -ge $hour_from && $4 -le $hour_to ) ]] ; then
 		 	echo 1

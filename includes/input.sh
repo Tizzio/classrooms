@@ -49,11 +49,16 @@ function get_date
 	 	if [[ $(check_date_format $in_date) = "1" ]] ; then
 		 	now=$(date +"%Y%m%d")
 			formatted_date=$(date -d "$in_date" +"%Y%m%d")
-	 		if [ $formatted_date -ge $now ]; then 
-		 		break
-		 	else
-		 		echo_color "Error: this date is not in the future" $c_red
+			if [ "$3" != "-c" ]; then  
+		 		if [ $formatted_date -ge $now ]; then 
+			 		break
+			 	else
+			 		echo_color "Error: this date is not in the future" $c_red
+				fi
+			else
+				break
 			fi
+			
 	 	else
 		 	echo_color "Error: format year/month/day (example "$(date +"%Y/%m/%d")")" $c_red
 	 	fi
